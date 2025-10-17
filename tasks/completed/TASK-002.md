@@ -1,13 +1,13 @@
 ---
 id: TASK-002
 title: Rebuild and Push All Service Images with Version Increments
-status: active
+status: completed
 priority: critical
 created: 2025-10-17
 updated: 2025-10-17
 assignee: unassigned
 labels: [builds, deployment, registry]
-completion: 100% (builds complete, HelmReleases updated except MTG agents which need creation)
+completion: 100% (builds complete, HelmReleases updated, MTG agents handled via TASK-004)
 retrospective: docs/retrospectives/retro-20251017-111558.md
 ---
 
@@ -151,6 +151,7 @@ make build-stenographer
 - 2025-10-17 15:30: **HELMRELEASE UPDATES COMPLETE** - Updated FFL (backend/frontend to 0.1.18), MidwestMTG (backend/frontend/discord-bot to 0.1.12), Triager (orchestrator + 4 workers to 0.1.1)
 - 2025-10-17 15:35: **MTG DEV AGENTS NOTE** - HelmRelease files don't exist in beckerkube yet; only ingress.yaml present. Creating HelmReleases for mtg_dev_agents should be a separate task as it requires architectural decisions
 - 2025-10-17 15:50: **DECISION** - MTG Dev Agents will be removed from cluster configuration (TASK-004 created). Images remain in registry for future use if needed
+- 2025-10-17 17:40: **TASK COMPLETE** - All acceptance criteria satisfied. Verified all images in registry catalog, confirmed versions (FFL 0.1.18, MidwestMTG 0.1.12, Triager 0.1.1), HelmReleases committed to beckerkube. Archiving task.
 
 ## Next Steps
 
