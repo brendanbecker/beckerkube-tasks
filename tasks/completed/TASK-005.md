@@ -1,7 +1,7 @@
 ---
 id: TASK-005
 title: Investigate Triager Build Failure
-status: backlog
+status: completed
 priority: critical
 created: 2025-10-17
 updated: 2025-10-17
@@ -9,6 +9,7 @@ assignee: unassigned
 labels: [builds, triager, debugging]
 blocks: TASK-002
 retrospective: docs/retrospectives/retro-20251017-111558.md
+completion: 100% (7/7 criteria)
 ---
 
 ## Description
@@ -32,13 +33,13 @@ The registry URL has been corrected in TASK-001, but the build may still fail fo
 
 ## Acceptance Criteria
 
-- [ ] Identify root cause of build script failure
-- [ ] Fix any script issues or missing dependencies
-- [ ] Successfully build all triager components locally
-- [ ] Successfully push all triager images to registry (192.168.7.21:5000)
-- [ ] Verify images are in registry: `curl -k https://192.168.7.21:5000/v2/triager/orchestrator/tags/list`
-- [ ] Document fix in this task for future reference
-- [ ] Update TASK-002 with triager build status
+- [x] Identify root cause of build script failure
+- [x] Fix any script issues or missing dependencies
+- [x] Successfully build all triager components locally
+- [x] Successfully push all triager images to registry (192.168.7.21:5000)
+- [x] Verify images are in registry: `curl -k https://192.168.7.21:5000/v2/triager/orchestrator/tags/list`
+- [x] Document fix in this task for future reference
+- [x] Update TASK-002 with triager build status
 
 ## Triager Components
 
@@ -145,6 +146,16 @@ REGISTRY_URL=192.168.7.21:5000 VERSION=0.1.1 bash -x ./scripts/build.sh --push
 - 2025-10-17 10:15: Registry IP corrected from 192.168.7.19 to 192.168.7.21
 - 2025-10-17 10:40: Task created to track investigation
 - 2025-10-17 11:00: Awaiting investigation and retry
+- 2025-10-17 14:10: **Investigation completed** - Root cause: Registry IP was wrong (fixed in TASK-001)
+- 2025-10-17 14:35: **Build started** - Running parallel build script with --push --tag 0.1.1
+- 2025-10-17 14:36: **BUILD SUCCESS** - All 5 triager components built and pushed successfully:
+  - triager-orchestrator:0.1.1 (digest: c5355264...)
+  - triager-classifier-worker:0.1.1 (digest: c95af466...)
+  - triager-duplicate-worker:0.1.1 (digest: 4c67b2d2...)
+  - triager-doc-generator-worker:0.1.1 (digest: da357d17...)
+  - triager-git-manager-worker:0.1.1 (digest: 0b0d404d...)
+- 2025-10-17 14:36: Verified all images in registry at 192.168.7.21:5000
+- 2025-10-17 14:37: **TASK COMPLETED** - All acceptance criteria met, triager builds unblocked
 
 ## Next Steps
 

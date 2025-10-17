@@ -7,7 +7,7 @@ created: 2025-10-17
 updated: 2025-10-17
 assignee: unassigned
 labels: [builds, deployment, registry]
-completion: 81% (17/21 criteria)
+completion: 95% (20/21 criteria)
 retrospective: docs/retrospectives/retro-20251017-111558.md
 ---
 
@@ -38,7 +38,7 @@ Registry URL: 192.168.7.21:5000
 | MidwestMTG Backend | >=0.1.11 <1.0.0 | 0.1.12 | ✅ Complete |
 | MidwestMTG Frontend | >=0.1.11 <1.0.0 | 0.1.12 | ✅ Complete |
 | MidwestMTG Discord Bot | >=0.1.11 <1.0.0 | 0.1.12 | ✅ Complete |
-| Triager Orchestrator | >=0.1.0 <1.0.0 | 0.1.1 | ❌ Blocked by TASK-005 |
+| Triager Orchestrator | >=0.1.0 <1.0.0 | 0.1.1 | ✅ Complete |
 | MTG Dev Agents - Orchestrator | Check chart | 417e41b | ✅ Complete |
 | MTG Dev Agents - Worker | Check chart | 417e41b | ✅ Complete |
 | MTG Dev Agents - Evaluator | Check chart | 417e41b | ✅ Complete |
@@ -59,11 +59,11 @@ Registry URL: 192.168.7.21:5000
 - [x] Verify images in registry: `curl -k https://192.168.7.21:5000/v2/midwestmtg/backend/tags/list`
 
 ### Triager
-- [ ] Debug and fix triager build failure (see TASK-005)
-- [ ] Build all triager containers with version 0.1.1
-- [ ] Push all triager images to registry 192.168.7.21:5000
+- [x] Debug and fix triager build failure (see TASK-005)
+- [x] Build all triager containers with version 0.1.1
+- [x] Push all triager images to registry 192.168.7.21:5000
 - [ ] Update triager HelmRelease in beckerkube to version 0.1.1
-- [ ] Verify images in registry: `curl -k https://192.168.7.21:5000/v2/triager/orchestrator/tags/list`
+- [x] Verify images in registry: `curl -k https://192.168.7.21:5000/v2/triager/orchestrator/tags/list`
 
 ### MTG Dev Agents
 - [x] Complete current evaluator build
@@ -145,6 +145,9 @@ make build-stenographer
 - 2025-10-17 14:30: Verified registry catalog - confirmed all 16 repositories including 9 newly built images
 - 2025-10-17 14:35: Updated TASK-002 acceptance criteria - 17/21 completed (81% complete)
 - 2025-10-17 14:40: **TASK-002 STATUS**: Mostly complete - Only triager builds blocked by TASK-005, HelmRelease updates remain
+- 2025-10-17 14:37: **TRIAGER BUILD SUCCESS** - TASK-005 completed, all 5 triager images built and pushed with version 0.1.1
+- 2025-10-17 14:38: Updated TASK-002 acceptance criteria - 20/21 completed (95% complete)
+- 2025-10-17 14:38: **TASK-002 NEARLY COMPLETE**: Only HelmRelease updates remain (FFL, MidwestMTG, Triager, MTG Dev Agents)
 
 ## Next Steps
 
