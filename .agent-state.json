@@ -1,0 +1,13 @@
+{
+  "session_id": "session-20251017-autonomous",
+  "started_at": "2025-10-17T00:00:00Z",
+  "tasks_processed": [],
+  "tasks_completed": [],
+  "tasks_blocked": [],
+  "current_task": "TASK-003",
+  "attempt_count": {
+    "TASK-003": 1
+  },
+  "consecutive_failures": 0,
+  "cluster_context": "minikube"
+}
