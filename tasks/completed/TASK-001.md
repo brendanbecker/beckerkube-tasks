@@ -5,8 +5,10 @@ status: completed
 priority: critical
 created: 2025-10-17
 updated: 2025-10-17
+completed: 2025-10-17
 assignee: unassigned
 labels: [infrastructure, builds, registry]
+retrospective: docs/retrospectives/retro-20251017-111558.md
 ---
 
 ## Description
@@ -94,9 +96,36 @@ None - this is a critical blocker for all other build and deployment tasks.
    curl -k https://${REGISTRY_URL}/v2/_catalog
    ```
 
+## Retrospective Learning (2025-10-17)
+
+**CRITICAL ISSUE DISCOVERED**: This task was marked complete at 12:00, but the registry TLS certificate was not actually regenerated with the new IP. During TASK-002 execution at 13:20, builds failed because the certificate still contained the old IP (192.168.1.18).
+
+**Root Cause**: Acceptance criteria said "Update beckerkube registry certificate IP to 192.168.7.21" but didn't require explicit verification that the certificate was regenerated and contained the correct IP.
+
+**Actual Resolution Timeline**:
+- 13:25: Deleted registry-tls secret to force regeneration
+- 13:30: Restarted registry deployment to pick up new certificate
+- 13:35: Verified certificate with: `kubectl get secret registry-tls -n registry -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -text | grep -A1 "Subject Alternative Name"`
+
+**Impact**: 3+ hours of troubleshooting during TASK-002 that could have been avoided with proper verification.
+
+**Lesson Learned**: Task completion requires validation, not just manifest updates. Future certificate-related tasks must include explicit verification steps in acceptance criteria.
+
+**Additional Discovery**: Docker daemon required insecure-registries configuration in /etc/docker/daemon.json:
+```json
+{
+  "insecure-registries": ["192.168.7.21:5000"]
+}
+```
+This system-level configuration was not documented in the original task but was critical for build success.
+
+**See**: docs/retrospectives/retro-20251017-111558.md for full analysis
+
 ## Notes
 
 - Consider using Kubernetes service DNS names instead of LoadBalancer IPs for in-cluster access
 - LoadBalancer IPs in Minikube are not stable across cluster rebuilds
 - May want to use a ConfigMap or external configuration file for registry URL
 - Document registry IP assignment in docs/architecture.md (already completed)
+- Build machine Docker daemon configuration must be documented in runbooks
+- Certificate verification should be standard part of registry configuration tasks

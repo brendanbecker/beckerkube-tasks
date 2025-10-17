@@ -7,6 +7,8 @@ created: 2025-10-17
 updated: 2025-10-17
 assignee: unassigned
 labels: [flux, deployment, verification]
+blocked_by: TASK-002
+retrospective: docs/retrospectives/retro-20251017-111558.md
 ---
 
 ## Description

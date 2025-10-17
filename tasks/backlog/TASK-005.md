@@ -2,11 +2,13 @@
 id: TASK-005
 title: Investigate Triager Build Failure
 status: backlog
-priority: high
+priority: critical
 created: 2025-10-17
 updated: 2025-10-17
 assignee: unassigned
 labels: [builds, triager, debugging]
+blocks: TASK-002
+retrospective: docs/retrospectives/retro-20251017-111558.md
 ---
 
 ## Description
