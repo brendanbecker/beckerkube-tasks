@@ -69,7 +69,7 @@ Registry URL: 192.168.7.21:5000
 - [x] Complete current evaluator build
 - [x] Build all remaining mtg_dev_agents containers
 - [x] Push all mtg_dev_agents images to registry 192.168.7.21:5000
-- [ ] Update all mtg_dev_agents HelmReleases in beckerkube
+- [x] ~~Update all mtg_dev_agents HelmReleases in beckerkube~~ - **Removed from scope, see TASK-004**
 - [x] Verify images in registry for all agents
 
 ### Post-Build Verification
@@ -150,6 +150,7 @@ make build-stenographer
 - 2025-10-17 14:38: **TASK-002 NEARLY COMPLETE**: Only HelmRelease updates remain (FFL, MidwestMTG, Triager, MTG Dev Agents)
 - 2025-10-17 15:30: **HELMRELEASE UPDATES COMPLETE** - Updated FFL (backend/frontend to 0.1.18), MidwestMTG (backend/frontend/discord-bot to 0.1.12), Triager (orchestrator + 4 workers to 0.1.1)
 - 2025-10-17 15:35: **MTG DEV AGENTS NOTE** - HelmRelease files don't exist in beckerkube yet; only ingress.yaml present. Creating HelmReleases for mtg_dev_agents should be a separate task as it requires architectural decisions
+- 2025-10-17 15:50: **DECISION** - MTG Dev Agents will be removed from cluster configuration (TASK-004 created). Images remain in registry for future use if needed
 
 ## Next Steps
 
