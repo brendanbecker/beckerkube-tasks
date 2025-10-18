@@ -38,16 +38,16 @@ no key could decrypt secret (tgz5s...Gqas=)
 ## Acceptance Criteria
 
 ### Investigation
-- [ ] Identify current sealed-secrets controller public/private key fingerprint
-- [ ] Check if original sealing key backed up before cluster rebuild
-- [ ] List all affected sealed secrets across all namespaces
-- [ ] Verify FFL namespace sealed secrets work (understand why some work, others don't)
+- [x] Identify current sealed-secrets controller public/private key fingerprint
+- [x] Check if original sealing key backed up before cluster rebuild
+- [x] List all affected sealed secrets across all namespaces
+- [x] Verify FFL namespace sealed secrets work (understand why some work, others don't)
 
 ### Resolution Path Decision
-- [ ] Evaluate Option A: Restore original private key (if backup exists)
-- [ ] Evaluate Option B: Re-encrypt all sealed secrets with current controller key
-- [ ] Evaluate Option C: Manually recreate secrets and generate new sealed secrets
-- [ ] Document chosen resolution path and rationale
+- [x] Evaluate Option A: Restore original private key (if backup exists)
+- [x] Evaluate Option B: Re-encrypt all sealed secrets with current controller key
+- [x] Evaluate Option C: Manually recreate secrets and generate new sealed secrets
+- [x] Document chosen resolution path and rationale
 
 ### Implementation
 - [ ] Execute chosen resolution path
@@ -254,11 +254,12 @@ Task is complete when:
 - Cluster reaching 100% operational status
 
 **Blocked By:**
-- None (can start immediately)
+- **TASK-007**: Re-encrypt Sealed Secrets with Current Controller Key (human-action task)
 
 **Related:**
 - **TASK-003**: Marked complete with sealed secrets scoped out to this task
 - **TASK-005**: Identified this issue during timeout troubleshooting
+- **TASK-007**: Human-action task created with step-by-step re-encryption instructions
 
 ## Risk Assessment
 
@@ -306,6 +307,17 @@ Task is complete when:
 - 2025-10-17 23:45: Documented 13 affected sealed secrets across midwestmtg and triager namespaces
 - 2025-10-17 23:50: Defined 3 resolution paths with pros/cons
 - 2025-10-18 00:00: Task ready for execution - awaiting assignment
+- 2025-10-18 01:00: **Investigation complete** - Confirmed root cause and resolution path
+  - Found 2 sealed-secrets controller keys in cluster (sealed-secrets-key, sealed-secrets-keycgcj2)
+  - Backup key from August 16 exists in ~/.sealed-secrets-backup/ (fingerprint 4B:1D:4D...)
+  - Current controller key matches August backup, but sealed secrets created October 13-15
+  - Sealed secrets encrypted with October key that's no longer available (lost during cluster rebuild)
+  - Cannot use Option A (key restore) - the October key was never backed up
+  - **Decision: Proceed with Option B - Re-encrypt all sealed secrets**
+- 2025-10-18 01:05: Created TASK-007 (human-action) with detailed re-encryption instructions
+  - Most secret values available in ~/.secrets/ directories
+  - Database/Redis passwords need regeneration
+  - Task provides step-by-step commands for all 13 secrets
 
 ## Next Steps
 
