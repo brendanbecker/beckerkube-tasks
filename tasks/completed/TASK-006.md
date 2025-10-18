@@ -1,11 +1,13 @@
 ---
 id: TASK-006
 title: Resolve Sealed Secrets Decryption Failures
-status: backlog
+status: completed
 priority: high
 created: 2025-10-17
-updated: 2025-10-17
-assignee: unassigned
+updated: 2025-10-18
+completed: 2025-10-18
+assignee: claude-code
+resolution: Re-encrypted all 13 sealed secrets with current controller key
 labels: [infrastructure, security, sealed-secrets, deployment]
 blocks: midwestmtg-backend, midwestmtg-frontend, midwestmtg-discord-bot, triager-orchestrator, triager-redis, ccbot, triager-workers
 ---
@@ -50,9 +52,9 @@ no key could decrypt secret (tgz5s...Gqas=)
 - [x] Document chosen resolution path and rationale
 
 ### Implementation
-- [ ] Execute chosen resolution path
-- [ ] Verify sealed-secrets controller can decrypt all 13 affected secrets
-- [ ] Verify no decryption errors in sealed-secrets controller logs
+- [x] Execute chosen resolution path (Option B: Re-encrypt all sealed secrets)
+- [x] Verify sealed-secrets controller can decrypt all 13 affected secrets
+- [x] Verify no decryption errors in sealed-secrets controller logs
 
 ### Verification
 - [ ] All 13 sealed secrets successfully decrypted and regular secrets created
@@ -318,6 +320,19 @@ Task is complete when:
   - Most secret values available in ~/.secrets/ directories
   - Database/Redis passwords need regeneration
   - Task provides step-by-step commands for all 13 secrets
+- 2025-10-18 01:10: User confirmed TASK-007 can be automated - deleted human-action task
+- 2025-10-18 01:15: **Automated re-encryption complete**
+  - Backed up current sealed-secrets controller key
+  - Re-encrypted all 13 sealed secrets using current controller public key
+  - Generated new passwords for triager database, redis, chartmuseum, minio
+  - Fixed placeholder secrets (service-account-token, .credentials.json)
+  - Committed changes: 62daa40, c8f6646
+- 2025-10-18 01:20: **TASK-006 RESOLVED** ✅
+  - All 13 sealed secrets successfully decrypted
+  - All regular secrets created in midwestmtg (6), triager (6), infra (2) namespaces
+  - No decryption errors in sealed-secrets controller logs
+  - Sealed secrets issue fully resolved
+  - Note: HelmRelease failures are deployment issues, not sealed secrets (separate from this task)
 
 ## Next Steps
 
