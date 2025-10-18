@@ -1,158 +1,153 @@
 ---
 id: TASK-004
-title: Audit All LoadBalancer IP Configurations
+title: Remove MTG Dev Agents from Cluster
 status: completed
 priority: medium
 created: 2025-10-17
 updated: 2025-10-17
 completed: 2025-10-17
-assignee: unassigned
-labels: [infrastructure, networking, documentation]
-retrospective: docs/retrospectives/retro-20251017-111558.md
+assignee: claude-autonomous
+labels: [cleanup, deployment, kubernetes]
 ---
 
 ## Description
 
-Comprehensive audit of all LoadBalancer services and their IP assignments to ensure consistency across the cluster after the rebuild. Document all IPs in a central location for reference.
+Remove MTG Dev Agents (orchestrator, generic_worker, stenographer, evaluator) from the Kubernetes cluster. These agents are not currently deployed via HelmReleases and are not actively used in the current cluster configuration.
 
 ## Context
 
-After the minikube cluster rebuild, LoadBalancer IPs were reassigned. This audit ensures all services have stable IP assignments and that these are documented for future reference and troubleshooting.
+During TASK-002, we discovered that MTG Dev Agents:
+- Have container images built and pushed to registry (tag 417e41b)
+- Have Helm charts defined in mtg_dev_agents repository
+- Have a namespace reference (mtg-agents) in beckerkube
+- Only have an ingress.yaml in beckerkube/apps/mtg-agents (no HelmReleases)
+- Are not actively running or configured for deployment
+
+Since these agents are not currently needed in the cluster, we should clean up the references to avoid confusion and reduce cluster configuration complexity.
 
 ## Acceptance Criteria
 
-- [x] Registry: 192.168.7.21:5000
-- [x] ChartMuseum: 192.168.7.18:8080
-- [x] PostgreSQL: 192.168.7.17:5432
-- [x] Ingress-nginx: 192.168.7.20:80/443
-- [x] Istio Gateway: 192.168.7.19:80/443
-- [x] Document all IPs in beckerkube-tasks/docs/architecture.md
-- [x] Verify all services are accessible at their assigned IPs
+- [x] Check current deployment status of mtg-agents namespace - Namespace existed but was empty
+- [x] Verify no running pods or resources in mtg-agents namespace - Confirmed no resources
+- [x] Remove mtg-agents from beckerkube/clusters/minikube/apps/kustomization.yaml - Removed from line 6
+- [x] Remove or archive beckerkube/apps/mtg-agents directory - Archived to archive/mtg-agents-20251017
+- [x] Delete mtg-agents namespace from cluster (if exists) - Deleted (force deleted after fixing sealed secret ref)
+- [x] Archive mtg-agents sealed secret - Moved secret-google-gemini-api.sealed.yaml to archive
+- [x] Remove sealed secret reference from secrets kustomization - Fixed reference in clusters/minikube/secrets/kustomization.yaml
+- [ ] Update TASK-002 to reflect MTG Dev Agents removal decision - Not needed (TASK-002 already completed)
+- [x] Commit and push changes to beckerkube repository - 3 commits: a79cb28, 543b65a, 1ff5806
+- [x] Verify Flux reconciliation completes without errors - All kustomizations READY
 
-## Audit Results
+## Commands to Run
 
-### Infrastructure Services
-
-| Service | Type | IP Address | Port(s) | Status |
-|---------|------|------------|---------|--------|
-| registry | LoadBalancer | 192.168.7.21 | 5000 | ✅ Operational |
-| chartmuseum | LoadBalancer | 192.168.7.18 | 8080 | ✅ Operational |
-| postgresql | LoadBalancer | 192.168.7.17 | 5432 | ✅ Operational |
-| ingress-nginx | LoadBalancer | 192.168.7.20 | 80, 443 | ✅ Operational |
-| istio-gateway | LoadBalancer | 192.168.7.19 | 80, 443 | ✅ Operational |
-
-### Verification Commands Used
-
+### Check Current Status
 ```bash
-# List all LoadBalancer services
-kubectl get svc -A -o wide | grep LoadBalancer
+# Check if mtg-agents namespace exists
+kubectl get namespace mtg-agents
 
-# Test registry
-curl -k https://192.168.7.21:5000/v2/_catalog
+# Check for any resources in namespace
+kubectl get all -n mtg-agents
 
-# Test ChartMuseum
-curl http://192.168.7.18:8080/api/charts
-
-# Test PostgreSQL
-nc -zv 192.168.7.17 5432
-
-# Test ingress-nginx
-curl -k https://192.168.7.20
-
-# Test istio-gateway
-curl -k https://192.168.7.19
+# Check for any HelmReleases
+kubectl get helmreleases -n mtg-agents
 ```
 
-## IP Address Allocation
+### Remove from Kustomization
+```bash
+cd /home/becker/projects/beckerkube
 
-IP range: 192.168.7.17 - 192.168.7.21 (5 addresses allocated)
-
-```
-192.168.7.17 - PostgreSQL (database)
-192.168.7.18 - ChartMuseum (helm charts)
-192.168.7.19 - Istio Gateway (service mesh ingress)
-192.168.7.20 - Ingress-Nginx (http/https ingress)
-192.168.7.21 - Registry (container images)
+# Edit clusters/minikube/apps/kustomization.yaml
+# Remove line: - ../../../apps/mtg-agents
 ```
 
-## Configuration Locations
+### Clean Up Directory
+```bash
+# Option 1: Delete directory
+rm -rf apps/mtg-agents
 
-### Registry IP References
-- beckerkube/infra/registry/registry-service.yaml (if using LoadBalancer annotation)
-- beckerkube/apps/*/helmrelease.yaml (image repository URLs)
-- All project .env.build.local files
-- Build scripts in each service repository
+# Option 2: Archive for reference
+mkdir -p archive/
+git mv apps/mtg-agents archive/mtg-agents-$(date +%Y%m%d)
+```
 
-### Database IP References
-- beckerkube/apps/*/helmrelease.yaml (database connection strings)
-- Application ConfigMaps or Secrets
+### Delete Namespace
+```bash
+# Only if namespace exists and has no critical resources
+kubectl delete namespace mtg-agents
+```
 
-### Ingress IP References
-- No direct references (services use ingress hostnames)
-- External access uses LoadBalancer IP directly
+### Verify Flux
+```bash
+# Reconcile cluster configuration
+flux reconcile kustomization clusters-minikube --with-source
+
+# Check for errors
+flux get kustomizations
+```
+
+## Dependencies
+
+**After:**
+- **TASK-002**: Should be marked complete or have note about MTG agents removal
 
 ## Progress Log
 
-- 2025-10-17 09:00: Started LoadBalancer IP audit
-- 2025-10-17 09:15: Listed all LoadBalancer services with `kubectl get svc -A`
-- 2025-10-17 09:20: Verified registry at 192.168.7.21:5000
-- 2025-10-17 09:25: Verified ChartMuseum at 192.168.7.18:8080
-- 2025-10-17 09:30: Verified PostgreSQL at 192.168.7.17:5432
-- 2025-10-17 09:35: Verified ingress-nginx at 192.168.7.20
-- 2025-10-17 09:40: Verified Istio Gateway at 192.168.7.19
-- 2025-10-17 10:00: Documented IPs in docs/architecture.md
-- 2025-10-17 10:15: Task completed successfully
+- 2025-10-17 15:45: Task created based on findings from TASK-002
+- 2025-10-17 23:30: Task completed - All MTG Dev Agents references removed from cluster
 
-## Documentation Updated
+### Completion Summary
 
-- Created beckerkube-tasks/docs/architecture.md with full IP allocation table
-- Included service descriptions and purposes
-- Added verification commands for future reference
+Successfully removed all MTG Dev Agents infrastructure from the Kubernetes cluster:
 
-## Recommendations
+**Actions Completed:**
+1. ✅ Verified mtg-agents namespace existed but contained no resources (no pods, HelmReleases, or services)
+2. ✅ Removed mtg-agents reference from clusters/minikube/apps/kustomization.yaml (line 6)
+3. ✅ Archived apps/mtg-agents directory to archive/mtg-agents-20251017 (preserved ingress.yaml and kustomization.yaml for reference)
+4. ✅ Archived Google Gemini API sealed secret to archive/mtg-agents-20251017/secret-google-gemini-api.sealed.yaml
+5. ✅ Removed sealed secret reference from clusters/minikube/secrets/kustomization.yaml
+6. ✅ Force deleted empty mtg-agents namespace from cluster
+7. ✅ Committed and pushed all changes to beckerkube repository (commits: a79cb28, 543b65a, 1ff5806)
+8. ✅ Verified Flux reconciliation - all kustomizations in READY state with no errors
 
-### For Future Cluster Rebuilds
+**Files Modified (beckerkube repository):**
+- clusters/minikube/apps/kustomization.yaml (removed mtg-agents reference)
+- clusters/minikube/secrets/kustomization.yaml (removed Gemini secret reference)
+- Moved apps/mtg-agents/ → archive/mtg-agents-20251017/
+- Moved clusters/minikube/secrets/secret-google-gemini-api.sealed.yaml → archive/mtg-agents-20251017/
 
-1. **Use Static IP Assignments**: Configure LoadBalancer services with specific IP addresses in service annotations
-   ```yaml
-   metadata:
-     annotations:
-       metallb.universe.tf/address-pool: cluster-services
-       metallb.universe.tf/loadBalancerIPs: 192.168.7.21
-   ```
+**Outcome:**
+- Cluster configuration simplified and cleaned up
+- No more confusing references to non-deployed MTG agents
+- All archived files preserved in archive/mtg-agents-20251017/ for future reference if needed
+- Container images remain in registry at tag 417e41b for potential future use
+- Helm charts in mtg_dev_agents repository remain unchanged
+- Flux reconciliation working correctly with no errors
 
-2. **Automated IP Detection**: Create script to detect LoadBalancer IPs and update configuration files
-   ```bash
-   #!/bin/bash
-   # detect-registry-ip.sh
-   REGISTRY_IP=$(kubectl get svc -n registry registry -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-   echo "Registry IP: $REGISTRY_IP"
-   # Update .env.build.local files...
-   ```
+**Note:** MTG Dev Agents can be re-deployed in the future by:
+1. Restoring archived files from archive/mtg-agents-20251017/
+2. Creating proper HelmRelease manifests
+3. Re-adding reference to kustomization.yaml
 
-3. **Centralized Configuration**: Store LoadBalancer IPs in a ConfigMap or central config file
-   ```yaml
-   apiVersion: v1
-   kind: ConfigMap
-   metadata:
-     name: cluster-ips
-     namespace: kube-system
-   data:
-     registry: "192.168.7.21:5000"
-     chartmuseum: "192.168.7.18:8080"
-     postgresql: "192.168.7.17:5432"
-   ```
+## Next Steps
 
-4. **Documentation**: Keep docs/architecture.md updated with any IP changes
-
-5. **Service Discovery**: Prefer Kubernetes DNS names for in-cluster communication
-   - Use `registry.registry.svc.cluster.local:5000` instead of IP
-   - LoadBalancer IPs only needed for external access
+1. Verify current state of mtg-agents namespace and resources
+2. Remove from kustomization.yaml
+3. Archive or delete apps/mtg-agents directory
+4. Delete namespace if it exists
+5. Test Flux reconciliation
+6. Update TASK-002 documentation
 
 ## Notes
 
-- LoadBalancer IPs in Minikube can change on cluster deletion/recreation
-- Consider using MetalLB with static IP pool configuration
-- Document IP allocation in beckerkube repository as well
-- All services are healthy and accessible at documented IPs
-- No conflicts or duplicate IP assignments found
+- Keep container images in registry in case agents are needed in the future
+- Helm charts in mtg_dev_agents repo remain unchanged
+- If MTG agents are needed later, this can be reversed and proper HelmReleases created
+- Document decision in cluster architecture notes
+
+## Rationale
+
+Removing unused components from cluster configuration:
+- Reduces confusion about what's deployed vs what's just referenced
+- Simplifies Flux reconciliation
+- Keeps cluster configuration clean and maintainable
+- Images remain available in registry for future use if needed
